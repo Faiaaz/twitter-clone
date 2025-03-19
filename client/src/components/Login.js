@@ -20,7 +20,7 @@ function Login({ onLogin }) {
             localStorage.setItem("user", username); // ✅ Save user after login
             onLogin(username); // ✅ Update React state
         } else {
-            alert("Login failed: " + (data.error || "Unknown error")); // ✅ Show error message
+            setError("Invalid credentials"); // ✅ Now using setError properly
         }
     })
     .catch((error) => alert("Error logging in: " + error.message));
