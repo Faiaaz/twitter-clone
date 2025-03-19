@@ -253,3 +253,18 @@ button:hover {
 .login-box button:hover {
     background-color: #0d8bf0;
 }
+
+.delete-btn {
+    background-color: #E0245E !important; /* Red color */
+    color: white !important;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.delete-btn:hover {
+    background-color: #B91D47 !important; /* Darker red on hover */
+}
+
