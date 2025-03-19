@@ -2,5 +2,5 @@ Flask
 Flask-CORS
 Flask-Login
 Flask-SQLAlchemy
-bcrypt
+flask-bcrypt
 gunicorn
