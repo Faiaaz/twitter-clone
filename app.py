@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Secret key for session security
+app.config["SESSION_TYPE"] = "filesystem"
 
 CORS(app)  # Enable CORS for all routes
 
@@ -37,6 +38,7 @@ class Tweet(db.Model):
     # Relationship to get the User object
     user = db.relationship("User", backref="tweets")
 
+
 # Create tables before running the app
 with app.app_context():
     db.create_all()
@@ -54,47 +56,42 @@ def home():
     return render_template("index.html")
 
 
-# User Registration
-@app.route("/register", methods=["GET", "POST"])
+# user registration
+@app.route("/api/register", methods=["POST"])
 def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")  # Hash the password
+    data = request.json  # Get JSON data from React
+    username = data.get("username")
+    password = data.get("password")
 
-        # Check if user already exists
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            flash("Username already taken!", "danger")
-            return redirect(url_for("register"))
+    # Check if username already exists
+    existing_user = User.query.filter_by(username=username).first()
+    if existing_user:
+        return jsonify({"error": "Username already taken"}), 400
 
-        # Create a new user and store it in the database
-        new_user = User(username=username, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
+    # Hash the password and create a new user
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+    new_user = User(username=username, password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
 
-        flash("Registration successful! You can now log in.", "success")
-        return redirect(url_for("login"))
-
-    return render_template("register.html")
+    return jsonify({"message": "Registration successful!"}), 201
 
 
 # User Login
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/api/login", methods=["POST"])
 def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+    data = request.json  # Get JSON data from React
+    username = data.get("username")
+    password = data.get("password")
 
-        user = User.query.filter_by(username=username).first()
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            flash("Login successful!", "success")
-            return redirect(url_for("dashboard"))
-        else:
-            flash("Invalid username or password", "danger")
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
 
-    return render_template("login.html")
+    user = User.query.filter_by(username=username).first()
+    if not user or not bcrypt.check_password_hash(user.password, password):
+        return jsonify({"error": "Invalid username or password"}), 401
+
+    return jsonify({"message": "Login successful", "username": username}), 200
 
 
 # add a new route for posting tweets
@@ -123,6 +120,7 @@ def dashboard():
     tweets = Tweet.query.order_by(Tweet.timestamp.desc()).all()  # Get all tweets from all users
     return render_template("dashboard.html", tweets=tweets)
 
+
 @app.route("/users")
 @login_required  # Only logged-in users can see this
 def view_users():
@@ -135,19 +133,123 @@ def view_users():
 
 
 # User Logout
-@app.route("/logout")
-@login_required
+# @app.route("/logout")
+# @login_required
+# def logout():
+#     logout_user()
+#     flash("Logged out successfully", "success")
+#     return redirect(url_for("login"))
+
+
+@app.route("/api/logout", methods=["POST"])
 def logout():
-    logout_user()
-    flash("Logged out successfully", "success")
-    return redirect(url_for("login"))
+    session.pop("user_id", None)  # Remove user session
+    return jsonify({"message": "Logged out successfully!"}), 20
+
 
 # create API Endpoint for Tweets
 @app.route("/api/tweets")
 def get_tweets():
     tweets = Tweet.query.order_by(Tweet.timestamp.desc()).all()
-    tweet_list = [{"id": t.id, "user": t.user.username, "content": t.content, "timestamp": t.timestamp.strftime('%Y-%m-%d %H:%M')} for t in tweets]
+    tweet_list = [
+        {"id": t.id, "user": t.user.username, "content": t.content, "timestamp": t.timestamp.strftime('%Y-%m-%d %H:%M')}
+        for t in tweets]
     return {"tweets": tweet_list}
+
+
+@app.route("/api/tweets", methods=["POST"])
+def post_tweet():
+    data = request.json  # Ensure we receive JSON data
+    username = data.get("username")
+    content = data.get("content")
+
+    if not username or not content:
+        return jsonify({"error": "Username and content are required"}), 400
+
+    # Find user in database
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Save tweet in database
+    new_tweet = Tweet(user=user, content=content)
+    db.session.add(new_tweet)
+    db.session.commit()
+
+    return jsonify({"message": "Tweet posted successfully!"}), 201
+
+
+@app.route("/api/tweet/<int:tweet_id>", methods=["PUT"])
+def edit_tweet(tweet_id):
+    data = request.json
+    new_content = data.get("content")
+    username = data.get("username")
+
+    if not new_content or not username:
+        return jsonify({"error": "Content and username are required"}), 400
+
+    tweet = Tweet.query.get(tweet_id)
+
+    if not tweet:
+        return jsonify({"error": "Tweet not found"}), 404
+
+    if tweet.user.username != username:
+        return jsonify({"error": "You can only edit your own tweets"}), 403
+
+    tweet.content = new_content
+    db.session.commit()
+    return jsonify({"message": "Tweet updated successfully!"})
+
+
+@app.route("/api/tweet/<int:tweet_id>", methods=["DELETE"])
+def delete_tweet(tweet_id):
+    data = request.json
+    username = data.get("username")
+
+    tweet = Tweet.query.get(tweet_id)
+
+    if not tweet:
+        return jsonify({"error": "Tweet not found"}), 404
+
+    if tweet.user.username != username:
+        return jsonify({"error": "You can only delete your own tweets"}), 403
+
+    db.session.delete(tweet)
+    db.session.commit()
+    return jsonify({"message": "Tweet deleted successfully!"})
+
+
+@app.route("/api/user/<username>")
+def get_user_profile(username):
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    tweets = Tweet.query.filter_by(user=user).order_by(Tweet.timestamp.desc()).all()
+    tweet_list = [{"id": t.id, "content": t.content, "timestamp": t.timestamp.strftime('%Y-%m-%d %H:%M')} for t in
+                  tweets]
+
+    return jsonify({
+        "username": user.username,
+        "tweets": tweet_list
+    })
+
+
+@app.route("/api/user/<username>/tweets", methods=["GET"])
+def get_user_tweets(username):
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    tweets = Tweet.query.filter_by(user_id=user.id).order_by(Tweet.timestamp.desc()).all()
+    tweet_list = [
+        {"id": t.id, "user": t.user.username, "content": t.content, "timestamp": t.timestamp.strftime('%Y-%m-%d %H:%M')}
+        for t in tweets]
+
+    return jsonify({"tweets": tweet_list})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
