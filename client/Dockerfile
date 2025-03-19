@@ -4,34 +4,23 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package.json first and install dependencies
+# Copy package.json and package-lock.json first
 COPY package.json package-lock.json ./
+
+# Ensure dependencies install correctly
 RUN npm install --legacy-peer-deps
 
+# Explicitly install react-scripts
+RUN npm install -g react-scripts
 
-# Install serve globally
-RUN npm install -g serve
-
-# Copy all files
+# Copy the entire frontend code
 COPY . .
 
-# Fix OpenSSL error
+# Fix OpenSSL issue for Webpack
 ENV NODE_OPTIONS=--openssl-legacy-provider
-
-# Build React app
-RUN npm run build
-
-# Ensure the correct directory for serving
-#WORKDIR /app/build
-
-# Install react-scripts explicitly to avoid missing module errors
-RUN npm install -g react-scripts
 
 # Expose frontend port
 EXPOSE 3000
-
-# Serve the frontend
-#CMD ["npx", "serve", "-s", "build", "-l", "3000","--no-clipboard"]
 
 # Start React in development mode
 CMD ["npm", "start"]
