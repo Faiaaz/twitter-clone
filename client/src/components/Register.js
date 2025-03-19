@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "../styles.css"; // Ensure styles are applied
 
 function Register({ onRegister }) {
     const [username, setUsername] = useState("");
@@ -28,9 +29,9 @@ function Register({ onRegister }) {
     };
 
     return (
-        <div>
+        <div className="register-box">
             <h2>Register</h2>
-            {message && <p style={{ color: "red" }}>{message}</p>}
+            {message && <p style={{ color: "green" }}>{message}</p>}
             <form onSubmit={handleRegister}>
                 <input
                     type="text"
