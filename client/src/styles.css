@@ -268,3 +268,42 @@ button:hover {
     background-color: #B91D47 !important; /* Darker red on hover */
 }
 
+/* ✅ Register Box - Fix Small Inputs & Large Button */
+.register-box {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+/* ✅ Make Input Bigger & More Readable */
+.register-box input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #E1E8ED;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* ✅ Fix Register Button Size */
+.register-box button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    background-color: #1DA1F2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.register-box button:hover {
+    background-color: #0d8bf0;
+}
