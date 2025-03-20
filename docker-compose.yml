@@ -7,6 +7,8 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
+      - /app/node_modules  # Prevents overriding node_modules in the container
+
     depends_on:
       - frontend
 
