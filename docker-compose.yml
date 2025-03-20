@@ -7,7 +7,6 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-      - /app/node_modules  # Prevents overriding node_modules in the container
 
     depends_on:
       - frontend
@@ -18,6 +17,8 @@ services:
       - "3000:3000"
     volumes:
       - ./client:/app
+      - /app/node_modules  # Prevents overriding node_modules in the container
+
     stdin_open: true
     tty: true
     environment:
