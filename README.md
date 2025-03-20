@@ -103,5 +103,5 @@ docker logs twitter-clone-frontend-1
 
 ---
 
-### **🚀 Now Anyone Can Run Your Project Easily!**
+### **🚀  Anyone Can Run this Project Easily!**
 
