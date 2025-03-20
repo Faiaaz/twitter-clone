@@ -176,8 +176,14 @@ def post_tweet():
     db.session.add(new_tweet)
     db.session.commit()
 
-    return jsonify({"message": "Tweet posted successfully!"}), 201
-
+    return jsonify({
+        "message": "Tweet posted successfully!",
+        "tweet": {
+            "id": new_tweet.id,
+            "content": new_tweet.content,
+            "timestamp": new_tweet.timestamp.strftime('%Y-%m-%d %H:%M')
+        }
+    }), 201
 
 @app.route("/api/tweet/<int:tweet_id>", methods=["PUT"])
 def edit_tweet(tweet_id):

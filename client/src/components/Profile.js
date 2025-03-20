@@ -41,7 +41,7 @@ function Profile() {
                 setTweetContent("");
                 setUserData({
                     ...userData,
-                    tweets: [{ id: Date.now(), user: loggedInUser, content: tweetContent, timestamp: "Just now" }, ...userData.tweets]
+                    tweets: [{ id: data.tweet.id, user: loggedInUser, content: tweetContent, timestamp: data.tweet.timestamp }, ...userData.tweets]
                 });
             }
         })
