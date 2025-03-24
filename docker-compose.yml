@@ -10,6 +10,7 @@ services:
 
     depends_on:
       - frontend
+    command: python run.py
 
   frontend:
     build: ./client

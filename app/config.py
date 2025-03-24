@@ -1,7 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
-
-db = SQLAlchemy()
-bcrypt = Bcrypt()
-login_manager = LoginManager()
+class Config:
+    SECRET_KEY = "supersecretkey"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///users.db"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
