@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import "../styles.css"; // Ensure styles are applied
+import "../styles/styles.css";
 
 function Profile() {
     const { username } = useParams();

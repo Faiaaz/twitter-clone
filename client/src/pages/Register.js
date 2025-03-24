@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../styles.css"; // Ensure styles are applied
+import "../styles/styles.css";
 
 function Register({ onRegister }) {
     const [username, setUsername] = useState("");
